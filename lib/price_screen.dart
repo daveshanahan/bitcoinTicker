@@ -1,4 +1,6 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'coin_data.dart';
 
 class PriceScreen extends StatefulWidget {
   @override
@@ -6,6 +8,21 @@ class PriceScreen extends StatefulWidget {
 }
 
 class _PriceScreenState extends State<PriceScreen> {
+  String selectedCurrency = 'USD';
+
+  // loop for displaying drop down of currencies
+  List<DropdownMenuItem> getDropDownItems() {
+    List<DropdownMenuItem<String>> dropDownItems = [];
+    for (String currency in currenciesList) {
+      var newItem = DropdownMenuItem(
+        child: Text(currency),
+        value: currency,
+      );
+      dropDownItems.add(newItem);
+    }
+    return dropDownItems;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -42,7 +59,19 @@ class _PriceScreenState extends State<PriceScreen> {
             alignment: Alignment.center,
             padding: EdgeInsets.only(bottom: 30.0),
             color: Colors.lightBlue,
-            child: null,
+            child: DropdownButton<String>(
+              // this value is default value you see when page loads - to update this when another currency selected,
+              // we need to create the selectedCurrency variable inside the page's state
+              // when they change the currency in the drop down the displayed value will get updated in the onChanged
+              // wrap the assignment in the onChanged in set state to have the value update finally
+              value: selectedCurrency,
+              items: getDropDownItems(),
+              onChanged: (value) {
+                setState(() {
+                  selectedCurrency = value;
+                });
+              },
+            ),
           ),
         ],
       ),
