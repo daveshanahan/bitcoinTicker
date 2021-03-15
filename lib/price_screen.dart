@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'coin_data.dart';
+// the IO package contains the platform class which lets us check if we are running on IOS or Android
+import 'dart:io' show Platform;
 
 class PriceScreen extends StatefulWidget {
   @override
@@ -10,8 +12,9 @@ class PriceScreen extends StatefulWidget {
 class _PriceScreenState extends State<PriceScreen> {
   String selectedCurrency = 'USD';
 
-  // loop for displaying drop down of currencies
-  List<DropdownMenuItem> getDropDownItems() {
+  // for Android
+  DropdownButton<String> getAndroidDropDown() {
+    // loop for creating currencies drop down
     List<DropdownMenuItem<String>> dropDownItems = [];
     for (String currency in currenciesList) {
       var newItem = DropdownMenuItem(
@@ -20,7 +23,37 @@ class _PriceScreenState extends State<PriceScreen> {
       );
       dropDownItems.add(newItem);
     }
-    return dropDownItems;
+    return DropdownButton<String>(
+// this value is default value you see when page loads - to update this when another currency selected,
+// we need to create the selectedCurrency variable inside the page's state
+// when they change the currency in the drop down the displayed value will get updated in the onChanged
+// wrap the assignment in the onChanged in set state to have the value update finally
+      value: selectedCurrency,
+      items: dropDownItems,
+      onChanged: (value) {
+        setState(() {
+          selectedCurrency = value;
+        });
+      },
+    );
+  }
+
+  // for IOS
+  CupertinoPicker getIOSPicker() {
+    // loop to get menu items
+    List<Text> pickerItems = [];
+    for (String currency in currenciesList) {
+      pickerItems.add(Text(currency));
+    }
+
+    return CupertinoPicker(
+      backgroundColor: Colors.lightBlue,
+      itemExtent: 32.0,
+      onSelectedItemChanged: (selectedIndex) {
+        print(selectedIndex);
+      },
+      children: pickerItems,
+    );
   }
 
   @override
@@ -59,19 +92,8 @@ class _PriceScreenState extends State<PriceScreen> {
             alignment: Alignment.center,
             padding: EdgeInsets.only(bottom: 30.0),
             color: Colors.lightBlue,
-            child: DropdownButton<String>(
-              // this value is default value you see when page loads - to update this when another currency selected,
-              // we need to create the selectedCurrency variable inside the page's state
-              // when they change the currency in the drop down the displayed value will get updated in the onChanged
-              // wrap the assignment in the onChanged in set state to have the value update finally
-              value: selectedCurrency,
-              items: getDropDownItems(),
-              onChanged: (value) {
-                setState(() {
-                  selectedCurrency = value;
-                });
-              },
-            ),
+            // use ternary operator to tap into platform.isIOS or .isAndroid to choose which picker to display
+            child: Platform.isIOS ? getIOSPicker() : getAndroidDropDown(),
           ),
         ],
       ),
