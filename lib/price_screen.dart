@@ -56,6 +56,30 @@ class _PriceScreenState extends State<PriceScreen> {
     );
   }
 
+  // create string to hold coin price in USD
+  String bitcoinPriceInUSD = '?';
+
+  // create getData async method to get coin data in a try and catch block to handle errors
+  void getData() async {
+    try {
+      double data = await CoinData().getCoinData();
+      // can't set state when using await - have to do it separately
+      setState(() {
+        bitcoinPriceInUSD = data.toStringAsFixed(0);
+      });
+      // catch the error
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // we can't call CoinData().getCoinData directly here because we can't make initState async
+    getData();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -77,7 +101,7 @@ class _PriceScreenState extends State<PriceScreen> {
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
                 child: Text(
-                  '1 BTC = ? USD',
+                  '1 BTC = $bitcoinPriceInUSD USD',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 20.0,
