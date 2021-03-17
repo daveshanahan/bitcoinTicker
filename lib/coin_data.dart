@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'price_screen.dart';
 
 const List<String> currenciesList = [
   'AUD',
@@ -35,9 +36,9 @@ const kApiKey = '377ABF0B-8814-49E8-96FB-A31E4FE1F861';
 const kApiURL = 'rest.coinapi.io';
 
 class CoinData {
-  Future getCoinData() async {
-    Uri url = Uri.https(
-        "$kApiURL", "/v1/exchangerate/BTC/USD", {"apikey": "$kApiKey"});
+  Future getCoinData(String selectedCurrency) async {
+    Uri url = Uri.https("$kApiURL", "/v1/exchangerate/BTC/$selectedCurrency",
+        {"apikey": "$kApiKey"});
 
     http.Response response = await http.get(url);
 
