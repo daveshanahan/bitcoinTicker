@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'price_screen.dart';
 
 const List<String> currenciesList = [
   'AUD',
@@ -37,20 +36,27 @@ const kApiURL = 'rest.coinapi.io';
 
 class CoinData {
   Future getCoinData(String selectedCurrency) async {
-    Uri url = Uri.https("$kApiURL", "/v1/exchangerate/BTC/$selectedCurrency",
-        {"apikey": "$kApiKey"});
+    //create map to store key value pairs of crypto currencies and their prices
+    Map<String, String> cryptoPrices = {};
+    //for loop to iterate over cryptoList and add entry to map with that crypto and its price
+    for (String crypto in cryptoList) {
+      Uri url = Uri.https("$kApiURL",
+          "/v1/exchangerate/$crypto/$selectedCurrency", {"apikey": "$kApiKey"});
 
-    http.Response response = await http.get(url);
+      http.Response response = await http.get(url);
 
-    if (response.statusCode == 200) {
-      String data = response.body;
-      // we use jsonDecode to parse the data and make it accessible
-      var decodedData = jsonDecode(data);
-      var lastPrice = decodedData['rate'];
-      return lastPrice;
-    } else {
-      print(response.statusCode);
-      throw 'Problem with the GET request';
+      if (response.statusCode == 200) {
+        String data = response.body;
+        // we use jsonDecode to parse the data and make it accessible
+        var decodedData = jsonDecode(data);
+        var lastPrice = decodedData['rate'];
+        //here I am adding an entry to the map with the key as crypto from cryptoList and the value as the price in selected currency
+        cryptoPrices[crypto] = lastPrice.toStringAsFixed(0);
+      } else {
+        print(response.statusCode);
+        throw 'Problem with the GET request';
+      }
     }
+    return cryptoPrices;
   }
 }

@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
 import 'coin_data.dart';
 // the IO package contains the platform class which lets us check if we are running on IOS or Android
 import 'dart:io' show Platform;
@@ -63,20 +62,44 @@ class _PriceScreenState extends State<PriceScreen> {
   }
 
   // create string to hold coin price
-  String bitcoinValue = '?';
+  Map<String, String> coinValues = {};
+  // track whether you are waiting for value to update or not
+  bool isWaiting = false;
 
   // create getData async method to get coin data in a try and catch block to handle errors
   void getData() async {
+    // set isWaiting to true while we are waiting for the data to be fetched
+    isWaiting = true;
     try {
-      double data = await CoinData().getCoinData(selectedCurrency);
+      // set data to a var to receive the map
+      var data = await CoinData().getCoinData(selectedCurrency);
+      // once the above line completes we can set isWaiting to false again
+      isWaiting = false;
       // can't set state when using await - have to do it separately
       setState(() {
-        bitcoinValue = data.toStringAsFixed(0);
+        coinValues = data;
       });
       // catch the error
     } catch (e) {
       print(e);
     }
+  }
+
+  Column makeCards() {
+    List<CryptoCard> cryptoCards = [];
+    for (String crypto in cryptoList) {
+      cryptoCards.add(
+        CryptoCard(
+          selectedCrypto: crypto,
+          selectedCurrency: selectedCurrency,
+          coinValue: isWaiting ? '?' : coinValues[crypto],
+        ),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: cryptoCards,
+    );
   }
 
   @override
@@ -88,6 +111,7 @@ class _PriceScreenState extends State<PriceScreen> {
 
   @override
   Widget build(BuildContext context) {
+    makeCards();
     return Scaffold(
       appBar: AppBar(
         title: Text('🤑 Coin Ticker'),
@@ -96,27 +120,18 @@ class _PriceScreenState extends State<PriceScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Padding(
-            padding: EdgeInsets.fromLTRB(18.0, 18.0, 18.0, 0),
-            child: Card(
-              color: Colors.lightBlueAccent,
-              elevation: 5.0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
-                child: Text(
-                  '1 BTC = $bitcoinValue $selectedCurrency',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 20.0,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-          ),
+          CryptoCard(
+              selectedCurrency: selectedCurrency,
+              coinValue: isWaiting ? '?' : coinValues['BTC'],
+              selectedCrypto: 'BTC'),
+          CryptoCard(
+              selectedCurrency: selectedCurrency,
+              coinValue: isWaiting ? '?' : coinValues['ETH'],
+              selectedCrypto: 'ETH'),
+          CryptoCard(
+              selectedCurrency: selectedCurrency,
+              coinValue: isWaiting ? '?' : coinValues['LTC'],
+              selectedCrypto: 'LTC'),
           Container(
             height: 150.0,
             alignment: Alignment.center,
@@ -126,6 +141,43 @@ class _PriceScreenState extends State<PriceScreen> {
             child: Platform.isIOS ? getIOSPicker() : getAndroidDropDown(),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class CryptoCard extends StatelessWidget {
+  const CryptoCard({
+    this.selectedCurrency,
+    this.coinValue,
+    this.selectedCrypto,
+  });
+
+  final String coinValue;
+  final String selectedCurrency;
+  final String selectedCrypto;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(18.0, 18.0, 18.0, 0),
+      child: Card(
+        color: Colors.lightBlueAccent,
+        elevation: 5.0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
+          child: Text(
+            '1 $selectedCrypto = $coinValue $selectedCurrency',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 20.0,
+              color: Colors.white,
+            ),
+          ),
+        ),
       ),
     );
   }
